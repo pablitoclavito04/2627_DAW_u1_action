@@ -187,5 +187,4 @@ El workflow es una forma de integración continua porque automatiza comprobacion
 
 
 ## Estado de los tests
-
-Este apartado se actualiza mediante `update_readme.py` cuando se ejecuta el workflow.
+✅ Tests correctos
