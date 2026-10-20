@@ -185,6 +185,12 @@ La sección 2 explica las herramientas; la sección 4 contiene los comandos de g
 El workflow es una forma de integración continua porque automatiza comprobaciones y tareas del proyecto al recibir cambios. El evento `push` en `main` inicia el proceso automáticamente, y `workflow_dispatch` permite iniciarlo manualmente.
 
 
+## 10. Conclusiones:
 
-## Estado de los tests
+Esta actividad me ha permitido aprender a documentar código Python mediante docstrings de estilo Google y a generar documentación en HTML con pdoc y en Markdown con un script complementario.
+
+También he aprendido a automatizar las pruebas y la generación de documentación mediante GitHub Actions, así como a guardar los resultados como artefactos descargables. Por último, he reforzado el uso de Git y GitHub para controlar versiones, registrar cambios mediante commits descriptivos y facilitar la colaboración.
+
+
+## Estado de los tests:
 ✅ Tests correctos
