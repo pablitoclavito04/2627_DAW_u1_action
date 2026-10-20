@@ -118,6 +118,22 @@ La clave privada debe mantenerse en el ordenador y nunca debe subirse al reposit
 
 La autenticación SSH no sustituye a los permisos del repositorio: el acceso debe limitarse a las personas autorizadas. Si el repositorio es privado, hay que conceder acceso al profesor para que pueda revisarlo.
 
+### Evidencia de configuración SSH
+
+Se ha generado una clave SSH ED25519 para el ordenador y se ha añadido su clave pública a la cuenta de GitHub con el título `PC Windows - DAW`.
+
+La conexión se ha comprobado mediante el comando:
+
+```bash
+ssh -i ~/.ssh/github_daw -T git@github.com
+```
+
+GitHub ha confirmado la autenticación con el mensaje:
+
+`Hi pablitoclavito04! You've successfully authenticated, but GitHub does not provide shell access.`
+
+La clave privada permanece en el ordenador y no se ha subido al repositorio.
+
 
 ## 8. Clonar y reproducir el proyecto:
 
