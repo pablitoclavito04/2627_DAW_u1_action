@@ -65,9 +65,9 @@ python generate_markdown.py
 
 Los archivos se guardan en `docs/`.
 
-- HTML: `docs/html/main.html`
-- Página de entrada HTML: `docs/html/index.html`
-- Markdown: `docs/markdown/documentacion.md`
+- [Documentación HTML](docs/html/main.html)
+- [Página de entrada HTML](docs/html/index.html)
+- [Documentación Markdown](docs/markdown/documentacion.md)
 
 El HTML se genera automáticamente a partir de `main.py` mediante `pdoc`. El Markdown se crea con el script [`generate_markdown.py`](generate_markdown.py).
 
