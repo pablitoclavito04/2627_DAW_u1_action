@@ -1,34 +1,60 @@
-name: CI con AutoCommit
+name: CI y documentación
 
+# Se ejecuta al subir cambios a main o manualmente
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   workflow_dispatch:
 
+# Permite actualizar el README mediante un commit automático
 permissions:
-  contents: write   # 👈 IMPORTANTE: permite que el bot pueda hacer commits/push
-
+  contents: write
 
 jobs:
-  test-and-update:
+  documentacion:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      # Descarga el código del repositorio
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
 
+      # Configura Python
       - name: Configurar Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.12"
 
+      # Instala las herramientas necesarias
       - name: Instalar dependencias
-        run: pip install pytest
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pdoc pytest
 
-      - name: Ejecutar script de tests y actualizar README
+      # Ejecuta las pruebas y actualiza el README
+      - name: Ejecutar pruebas y actualizar README
         run: python update_readme.py
 
+      # Genera la documentación HTML con pdoc
+      - name: Generar documentación HTML
+        run: python -m pdoc -o docs/html main
+
+      # Genera la documentación Markdown
+      - name: Generar documentación Markdown
+        run: python generate_markdown.py
+
+      # Sube los formatos generados como artefacto descargable
+      - name: Subir documentación
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentacion
+          path: docs/
+          if-no-files-found: error
+
+      # Guarda automáticamente los cambios del README
       - name: Commit automático del README
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update README con estado de tests"
+          commit_message: "Actualiza README con el estado de los tests"
           file_pattern: README.md

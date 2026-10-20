@@ -1,340 +1,191 @@
-# 1. Actividad: *GitHub Actions: entendiendo Workflow.*
+# Generación automática de documentación con GitHub Actions.
 
-## 🎯 Objetivos de aprendizaje
-
-* Comprender la estructura de un workflow (`on`, `jobs`, `steps`).
-
-   * Ejecutar tests automáticamente en GitHub.
-   * Automatizar la actualización del `README.md` con el resultado.
- 
-* Explorar mejoras progresivas para descubrir el potencial de GitHub Actions.
-
----
-
-## 📝 Contexto
-
-Partimos de un **repositorio base** que contiene:
-
-* Un programa sencillo (`main.py`).
-* Un test unitario (`test_main.py`).
-* Un script (`update_readme.py`) que ejecuta los tests y modifica el `README.md`, con el resultado de ejecutar los test.
-* El workflow básico (`ci.yml`) que ejecuta el script y hace commit automático con `git-auto-commit-action`.
-
----
-
-## 🔹 Parte 1: Workflow básico. Ya implementado.
-
-1. El alumno clona el repositorio base.
-2. Comprende el contenido del script y del workflow.
-3. Ejecuta el workflow manualmente y comprueba que el `README.md` se actualiza con una de estas dos salidas:
-
-   * ✅ *Tests correctos*
-   * ❌ *Tests fallidos*
-
----
-
-## 🔹 Parte 2: Mejora obligatoria (nivel básico)
-
-Cada alumno debe implementar al menos una de estas mejoras:
-
-* **Historial de resultados en el README:** en lugar de sobrescribir, añadir nuevas líneas con fecha/hora.
-* **Generar un archivo `report.md`:** con más detalles de la ejecución (tests pasados, fallidos, tiempo).
-
----
-
-## 📑 Entregables
-
-Cada alumno debe entregar:
-
-1. Enlace a su repositorio con el workflow funcionando.
-2. Evidencia en el historial de commits de:
-
-   * Al menos un test correcto y uno fallido de la solución entregada.
-   * Una mejora implementada (historial, report.md, badge o equivalente).
-3. Breve documento (README_mejora.md) explicando:
-
-   * Qué mejoras ha implementado.
-   * Qué hace tu workflow.
-
----
-
-## 📌 Evaluación (rúbrica simplificada)
-
-* ✅ Workflow básico funciona y modifica el README.
-* ✅ Al menos una mejora implementada.
-* ✅ Explicación clara del funcionamiento y ventajas.
+Este repositorio demuestra cómo generar documentación de código Python en varios formatos mediante herramientas de documentación y GitHub Actions.
 
 
----
+## 1. Objetivos:
 
-# 2. SOLUCIÓN: "GitHub Actions + Python Script + Auto Commit"
-
-## 📝 Preparación del repositorio base
-
-Estructura:
-
-```
-mi-proyecto-actions/
- ├── main.py
- ├── test_main.py
- ├── update_readme.py   👈 nuevo script
- └── README.md
-```
+- Documentar código Python mediante docstrings de estilo Google.
+- Generar documentación HTML con `pdoc`.
+- Generar documentación Markdown con un script Python.
+- Automatizar las pruebas y la generación de documentación mediante GitHub Actions.
+- Publicar los archivos generados como un artefacto descargable.
 
 
-### README.md inicial   
+## 2. Herramientas utilizadas:
 
-Una posible versión base del fichero README.md sería el siguiente (aunque finalmente será mas completo): 
+| Herramienta | Uso |
+|---|---|
+| Python 3.12 | Lenguaje utilizado para el ejemplo y los scripts |
+| pdoc | Generación de documentación HTML |
+| pytest | Ejecución de pruebas automatizadas |
+| GitHub Actions | Automatización del proceso |
+| actions/upload-artifact | Publicación de la documentación generada como artefacto |
 
 
-```markdown
-# Mi Proyecto con GitHub Actions
+## 3. Código documentado:
 
-Este proyecto sirve para aprender a usar GitHub Actions 🚀
-
-## 3stado de los tests
-*Aún no ejecutados...*
-```
-
-### main.py   
-
-Un ejemplo básico, que contiene una función saludo.  Puedes modificar la función cuando quieres que falle. 
+El archivo [`main.py`](main.py) contiene la función `saludo()`, documentada con el estilo Google.
 
 ```python
 def saludo(nombre: str) -> str:
+    """Genera un saludo personalizado.
+
+    Args:
+        nombre (str): Nombre de la persona a la que saludar.
+
+    Returns:
+        str: Mensaje de saludo personalizado.
+    """
     return f"Hola, {nombre}!"
 ```
 
-### test\_main.py    
+El docstring explica la finalidad de la función, su parámetro y el valor que devuelve.
 
-Un test básico. 
 
-```python
-from main import saludo
+## 4. Generación local de documentación:
 
-def test_saludo():
-    assert saludo("Mundo") == "Hola, Mundo!"
+Para reproducir la generación en un ordenador con Python instalado, clona el repositorio e instala las herramientas:
+
+```bash
+python -m pip install pdoc pytest
 ```
 
----
+Genera la documentación HTML:
 
-## 🐍 Script en Python (`update_readme.py`)
-
-Script en python. Este script ejecuta los tests y actualiza el README:
-
-```python
-import subprocess
-
-def run_tests():
-    try:
-        subprocess.check_call(["pytest", "-q"])
-        return "✅ Tests correctos"
-    except subprocess.CalledProcessError:
-        return "❌ Tests fallidos"
-
-def update_readme(status: str):
-    with open("README.md", "r", encoding="utf-8") as f:
-        lines = f.readlines()
-
-    new_lines = []
-    for line in lines:
-        new_lines.append(line)
-        if line.strip() == "## Estado de los tests":
-            new_lines.append(status + "\n")
-            break
-
-    with open("README.md", "w", encoding="utf-8") as f:
-        f.writelines(new_lines)
-
-if __name__ == "__main__":
-    status = run_tests()
-    update_readme(status)
+```bash
+python -m pdoc -o docs/html main
 ```
 
-👉 Lo que hace:
+Genera la documentación Markdown:
 
-1. Ejecuta los tests con `pytest`.
-2. Según el resultado, genera un estado ✅ o ❌.
-3. Modifica el `README.md` justo debajo de la sección `## 3stado de los tests`.
-
----
-
-## ⚙️ Workflow (`.github/workflows/ci.yml`)
-
-El workflow que gúía el github action:   
-
-```yaml
-name: CI con AutoCommit
-
-on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch:
-
-permissions:
-  contents: write   # 👈 IMPORTANTE: permite que el bot pueda hacer commits/push
-
-jobs:
-  test-and-update:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Configurar Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Instalar dependencias
-        run: pip install pytest
-
-      - name: Ejecutar script de tests y actualizar README
-        run: python update_readme.py
-
-      - name: Commit automático del README
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Update README con estado de tests"
-          file_pattern: README.md
+```bash
+python generate_markdown.py
 ```
 
----
+Los archivos se guardan en `docs/`.
 
-## 🚦 Flujo de la actividad
+- HTML: `docs/html/main.html`
+- Página de entrada HTML: `docs/html/index.html`
+- Markdown: `docs/markdown/documentacion.md`
 
-1. Cuando se haga un **push** en `main`.
-2. Se le da permiso de escritura para hacer commits/push al repositorio.
-3. El workflow ejecuta el script en Python.
-4. El script corre los tests y modifica el `README.md`.
-5. La acción `git-auto-commit-action` hace commit automático con los cambios.
-6. El alumno ve en el repo cómo el `README.md` se actualiza con:
-    
-    * ✅ Tests correctos
-    * ❌ Tests fallidos
+El HTML se genera automáticamente a partir de `main.py` mediante `pdoc`. El Markdown se crea con el script [`generate_markdown.py`](generate_markdown.py).
 
----
 
-# 3. POSIBLES MEJORAS AL EJEMPLO ANTERIOR
+## 5. GitHub Actions:
 
-La idea es que no solo no repitais el ejemplo, sino que **investigueis, mejoreis y veais el potencial real de GitHub Actions**. Para ello se piden funcionalidades **extra e imaginativas**. Aqui teneis varias propuestas, de más sencillas a más potentes, todas pensadas para que veais ventajas prácticas:
+El workflow se encuentra en [`.github/workflows/ci.yaml`](.github/workflows/ci.yaml).
 
----
+Se ejecuta cuando se suben cambios a la rama `main` mediante el evento `push`, y también puede iniciarse manualmente mediante `workflow_dispatch`.
 
-## 💡 Mejoras propuestas para el Action
+El job realiza estos pasos:
 
-### 1. **Historial en el README**
+1. Descarga el repositorio.
+2. Configura Python e instala `pdoc` y `pytest`.
+3. Ejecuta `update_readme.py` para ejecutar las pruebas y actualizar el estado en este README.
+4. Genera la documentación HTML mediante `pdoc`.
+5. Genera la documentación Markdown mediante `generate_markdown.py`.
+6. Sube la carpeta `docs/` como artefacto descargable.
 
-* Que en lugar de sobrescribir el estado, **guarden un histórico** en el README:
-  
-  ```markdown
-  ## 3stado de los tests
-  - ✅ 2025-09-22 18:00 - Tests correctos
-  - ❌ 2025-09-22 17:45 - Tests fallidos
-  ```
-  
-* 👉 Aprenderás a  **manejar fechas** y a **modificar archivos de forma acumulativa**.
+Las ejecuciones pueden consultarse en la pestaña **Actions** del repositorio. Cuando una ejecución termine correctamente, el artefacto `documentacion` estará disponible en el resumen de esa ejecución.
 
----
 
-### 2. **Generar un `report.md` con detalles**
+## 6. Control de versiones y commits:
 
-* Crear un archivo `test-report.md` con:
-    
-    * Número total de tests.
-    * Tests pasados y fallidos.
-    * Tiempo de ejecución.
+Los cambios se registran mediante Git. Los mensajes de commit deben ser breves, descriptivos y expresar la acción realizada.
 
-* 👉 Aprenderás a  **exportar resultados de procesos** y tener **documentación viva** del proyecto.
+Ejemplos de mensajes apropiados para esta mejora:
 
----
+- `Documenta la función saludo con Google Style`
+- `Añade generador de documentación Markdown`
+- `Automatiza la generación de documentación`
+- `Actualiza README con instrucciones y resultados`
 
-### 3. **Badges automáticos en README**
+Estos son ejemplos de mensajes recomendados; el historial real de commits del repositorio constituye la evidencia de los cambios efectivamente realizados.
 
-* Añadir un **badge** dinámico al README con el estado:
-    
-    * Verde = Tests correctos
-    * Rojo = Tests fallidos
-* Usando [shields.io](https://shields.io/) o generando un badge local en SVG.
 
-* 👉 Entenderás cómo **mejorar la comunicación del estado** de un proyecto.
+## 7. Acceso mediante SSH:
 
----
+Para comprobar la autenticación SSH con GitHub, se puede ejecutar:
 
-### 4. **Notificaciones externas**
+```bash
+ssh -T git@github.com
+```
 
-* Enviar el resultado a:
-    
-    * **Slack/Discord** (webhook sencillo).
-    * **Email** (con una acción de envío).
+Si la clave pública está añadida a la cuenta de GitHub y la autenticación funciona, GitHub muestra un mensaje de bienvenida.
 
-* 👉 Descrubrirás que Actions también sirve para **integrar con herramientas externas**.
+La clave privada debe mantenerse en el ordenador y nunca debe subirse al repositorio. La clave pública puede añadirse en la configuración SSH de la cuenta de GitHub.
 
----
+La autenticación SSH no sustituye a los permisos del repositorio: el acceso debe limitarse a las personas autorizadas. Si el repositorio es privado, hay que conceder acceso al profesor para que pueda revisarlo.
 
-### 5. **Ejecutar en múltiples entornos (matrix)**
 
-* Hacer que los tests se ejecuten en:
-    
-    * Varias versiones de Python (`3.8`, `3.9`, `3.10`).
-    * O en Linux y Windows.
-     
-* 👉 Verás la potencia del `strategy.matrix` y comprobarás compatibilidad multiplataforma.
+## 8. Clonar y reproducir el proyecto:
 
----
+Clona el repositorio:
 
-### 6. **Programar ejecución automática**
+```bash
+git clone https://github.com/pablitoclavito04/2627_DAW_u1_action.git
+cd 2627_DAW_u1_action
+```
 
-* Añadir `schedule` para que se ejecute cada día a medianoche.
-* El README mostraría:
-  
-  ```
-  ✅ Última comprobación automática: 2025-09-22 00:00
-  ```
+Instala las herramientas:
 
-* 👉 Aprenderás a **programar tareas recurrentes**.
+```bash
+python -m pip install pdoc pytest
+```
 
----
+Ejecuta las pruebas:
 
-### 7. **Generar una página web de resultados**
+```bash
+python -m pytest -v
+```
 
-* Publicar los resultados en GitHub Pages (`gh-pages`) usando `peaceiris/actions-gh-pages`.
-* 👉 Visualizarás cómo GitHub Actions puede hacer **CI/CD real** (tests + despliegue).
+Genera los dos formatos:
 
----
+```bash
+python -m pdoc -o docs/html main
+python generate_markdown.py
+```
 
-### 8. **Crear Issues automáticos si fallan los tests**
+También puedes ejecutar el workflow desde **GitHub → Actions → CI y documentación → Run workflow**, siempre que tengas los permisos necesarios.
 
-* Si un test falla → abrir un **issue automático** en el repositorio:
-  
-  ```yaml
-  - uses: actions/github-script@v7
-    with:
-      script: |
-        github.issues.create({
-          owner: context.repo.owner,
-          repo: context.repo.repo,
-          title: "❌ Tests fallidos",
-          body: "Se han detectado errores en los tests. Revisa el último commit."
-        })
-  ```
-* 👉 Aprenderás a **automatizar la gestión de incidencias**.
 
----
+## 9. Cuestionario de responder:
 
-## 🎯 Aprendizaje con estas mejoras
+### a) Identificación de herramientas de generación de documentación. ¿Qué herramienta o generador (p. ej., Sphinx, pdoc, Javadoc, Doxygen, Dokka) utilizaste en el workflow para crear la documentación en /docs?
 
-Con estas extensiones conseguireis:
+Se utiliza `pdoc` para generar documentación HTML a partir del código Python. Un script complementario genera la documentación Markdown. GitHub Actions automatiza ambos procesos.
 
-* Experimentar **cómo GitHub Actions conecta piezas del desarrollo real** (tests, docs, issues, notificaciones, despliegues).
-* Entender la **ventaja competitiva** de CI/CD: feedback inmediato, documentación viva y automatización.
-* Pasar de un ejemplo didáctico a un flujo de trabajo que se parece mucho al que usan empresas reales.
+### b) Documentación de componentes. Muestra un fragmento del código con comentarios/docstrings estructurados (p. ej., :param, :return: o etiquetas equivalentes) que haya sido procesado por la herramienta. Comenta que estilo de documentación has utlicado: (p. ej., reStructuredText, Google Style, KDoc)
 
----
+La función `saludo()` de `main.py` utiliza un docstring de estilo Google. Las secciones `Args` y `Returns` describen el parámetro y el valor devuelto. `pdoc` procesa esa documentación al generar el HTML.
 
-# Mi Proyecto con GitHub Actions
+### c) Multiformato. ¿Qué segundo formato (además de HTML) generaste? Explica la configuración o comandos del workflow y herramientas que lo producen.
 
-Este proyecto sirve para aprender a usar GitHub Actions 🚀
+Se generan HTML y Markdown. El HTML se crea mediante `python -m pdoc -o docs/html main`; el Markdown se genera ejecutando `python generate_markdown.py`. Ambos se guardan en `docs/` y se suben como artefacto.
+
+### d) 	Colaboración. Explica cómo GitHub facilita mantener la documentación (actualizaciones del README.md y de /docs) cuando colaboran varias personas (PRs, reviews, checks de CI, protección de ramas).
+
+GitHub permite colaborar mediante ramas, pull requests y revisiones de código. Los checks de CI permiten detectar errores antes de integrar cambios. La protección de ramas puede exigir revisiones y ejecuciones satisfactorias antes de aceptar una integración.
+
+### e) Control de versiones. Muestra mensajes de commit que evidencien el nuevo workflow. ¿Son claros y descriptivos? Justifícalo. Ademas de un conjunto de mensajes de tus commits.
+
+Los mensajes como `Añade generador de documentación Markdown` y `Automatiza la generación de documentación` describen el cambio de forma concreta y comienzan con un verbo en imperativo. La evidencia definitiva son los commits reales del repositorio.
+
+### f) Accesibilidad y seguridad. ¿Qué medidas/configuración del repositorio garantizan que solo personal autorizado accede al código y la documentación? (p. ej., repositorio privado, equipos, roles, claves/secretos, branch protection).
+
+El acceso depende de si el repositorio es público o privado y de los permisos concedidos a cada colaborador. Las claves privadas y los secretos no deben guardarse en el repositorio. La protección de ramas y los permisos mínimos ayudan a reducir cambios no autorizados. Las medidas efectivamente configuradas deben comprobarse en los ajustes del repositorio.
+
+### g) 	Instalación/uso documentados. Indica dónde en el README.md explicas el funcionamiento del workflow y dónde detallas las herramientas y comandos de documentación.
+
+La sección 2 explica las herramientas; la sección 4 contiene los comandos de generación local; la sección 5 describe el workflow; y la sección 8 explica cómo clonar y reproducir el proyecto.
+
+### h) Integración continua. Justifica por qué el workflow utilizado es CI. ¿Qué evento dispara automáticamente la generación/actualización de la documentación (p. ej., push, pull_request, workflow_dispatch)?
+
+El workflow es una forma de integración continua porque automatiza comprobaciones y tareas del proyecto al recibir cambios. El evento `push` en `main` inicia el proceso automáticamente, y `workflow_dispatch` permite iniciarlo manualmente.
+
+
 
 ## Estado de los tests
-✅ Tests correctos
+
+Este apartado se actualiza mediante `update_readme.py` cuando se ejecuta el workflow.
